@@ -12,6 +12,11 @@ db = client["SD2024_projet"]
 
 ######################
 #fonctions pour artiste
+def getAll_artists():
+    collection = db["GAMMA_artists"]
+    local_artists = collection.find()
+    return local_artists
+
 def check_artist_in_db(artist):
     collection = db["GAMMA_artists"]
     artist_info_from_db = collection.find_one({"name": artist})
@@ -21,7 +26,6 @@ def insert_artist_info_into_db(artist_info):
 
     collection = db["GAMMA_artists"]
 
-    
     existing_document = collection.find_one({"name": artist_info["name"]})
 
     if existing_document:
@@ -50,8 +54,14 @@ def insert_tag_info_into_db(tag_info):
 
 ######################
 #fonctions pour albums 
+def getAll_albums():
+    collection = db["GAMMA_albums"]
+    local_albums = collection.find()
+    return local_albums
+
+
 def check_album_in_db(artist_name, album_name):
-    collection = db["GAMMA_albumes"]
+    collection = db["GAMMA_albums"]
     album_info_from_db = collection.find_one({"artist": artist_name, "album": album_name})
     return album_info_from_db
 
@@ -65,6 +75,16 @@ def insert_album_info_into_db(album_info):
     else:
         collection.insert_one(album_info)
         print("Données de l'album insérées avec succès dans la collection GAMMA_albums.")
+
+######################
+#fonctions pour tracks 
+def getAll_tracks():
+    collection = db["GAMMA_tracks"]
+    local_tracks = collection.find()
+    return local_tracks
+
+
+
 ########################
 #fonction pour les similarité
 def check_similiarite_in_db(artist, track):

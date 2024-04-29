@@ -4,7 +4,7 @@ import plotly.graph_objs as go
 import json
 import matplotlib.pyplot as plt
 from flask import Flask, redirect, render_template, request, url_for
-from BDmongo import insert_artist_info_into_db, check_artist_in_db, check_tag_in_db, insert_tag_info_into_db, check_album_in_db, insert_album_info_into_db,log_consultation,count_consultations,insert_similaire_info_into_db, check_similiarite_in_db
+from BDmongo import *
 from datetime import datetime
 #API key
 XI_API_KEY = "43fd3e0df818d835e6b144ad21a7765a"
@@ -39,6 +39,9 @@ def get_similar_track(api_key, artist, track, page=1, limit=10):
         }
         tracks_info_list.append(track_info)
     return tracks_info_list
+
+
+
 
 
 
@@ -162,9 +165,13 @@ def get_artist_info(api_key, artist):
     }
     response = requests.get(url, params=params)
     data = response.json()
+    artist_data = data.get('artist', {})
 
+    listeners_str = artist_data.get('stats').get('listeners')
+    listeners_int = int(listeners_str.replace(',', '')) if listeners_str else None 
     artist_info = {
         'name': data['artist']['name'],
+        'listeners': listeners_int,
         'similar_artists': []
     }
 
@@ -217,6 +224,28 @@ def get_album_info(api_key, artist, album):
 
 
 
+def get_filtred_charts(ecoutes,comparateur, option):
+    if option =='artist' : 
+        all_artists = getAll_artists()
+        if comparateur =='sup':
+            filtred_charts = [artist for artist in all_artists if artist['listeners'] >= ecoutes]  # Filtrer les morceaux avec plus de 100 écoutes
+        else:
+            filtred_charts = [artist for artist in all_artists if artist['listeners'] <= ecoutes]  # Filtrer les morceaux avec plus de 100 écoutes
+
+    elif option == 'album' : 
+        all_albums = getAll_albums()
+        if comparateur =='sup':
+            filtred_charts = [album for album in all_albums if album['listeners'] >= ecoutes]  # Filtrer les morceaux avec plus de 100 écoutes
+        else:
+            filtred_charts = [album for album in all_albums if album['listeners'] <= ecoutes]  # Filtrer les morceaux avec plus de 100 écoutes
+    else :
+        all_tracks = getAll_tracks()
+        if comparateur =='sup':
+            filtred_charts = [track for track in all_tracks if track['listeners'] >= ecoutes]  # Filtrer les morceaux avec plus de 100 écoutes
+        else:
+            filtred_charts = [track for track in all_tracks if track['listeners'] <= ecoutes]  # Filtrer les morceaux avec plus de 100 écoutes
+
+    return filtred_charts
 
 
 
@@ -256,11 +285,8 @@ def a():
 @app.route('/c',methods=['GET'])
 def c():
     track_info_list = get_info_chart(XI_API_KEY, 'tracks')
-    log_consultation("tracks")
-
-    
+    log_consultation("tracks")   
     tracks_with_index = [(index + 1, track_info) for index, track_info in enumerate(track_info_list)]
-
     return render_template('chart_tracks.html',tracks_with_index=tracks_with_index)
 
 @app.route('/c2',methods=['GET'])
@@ -290,6 +316,7 @@ def Artiste():
         artist_info = get_artist_info(XI_API_KEY, artist_name)
         insert_artist_info_into_db(artist_info)
         print("pas dans la base")
+        print("aaaaaaaaaa" ,artist_info)
         return render_template('Artiste.html', artist_info=artist_info)
 
 @app.route('/tag', methods=['GET'])
@@ -334,6 +361,24 @@ def similaire():
         response = get_similar_track(XI_API_KEY,artist,track)
         insert_similaire_info_into_db(response,artist,track)
     return render_template('Similaire.html', tracks_info=response)
+
+@app.route('/charts_filter',methods=['POST','GET'])
+def charts_filter():
+    
+    if 'option' in request.args and 'comparateur' in request.args and 'ecoutes' in request.args:
+        option = request.args.get('option')
+        comparateur = request.args.get('comparateur')
+        ecoutes_str = request.args.get('ecoutes')
+        ecoutes_int = int(ecoutes_str)
+        filtred_charts = get_filtred_charts(ecoutes_int,comparateur, option)
+        if filtred_charts:
+            print("dans la base")
+            return render_template('charts_filter.html', filtred_charts=filtred_charts, option=option)
+        else :
+            return render_template('charts_filter.html', error_message="Aucune donnée n'est trouvé")
+
+    else :
+        return render_template('charts_filter.html')
 
 
 if __name__ == '__main__':

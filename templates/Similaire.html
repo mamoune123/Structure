@@ -28,6 +28,7 @@
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/c">Top 10</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/charts_filter">Charts Filter</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/a">Artiste</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/">Album</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/t">Tag</a></li>
@@ -58,36 +59,7 @@
                     </form>
                     
                     
-                    <div class="container mt-5" style="display: flex; flex-direction: column; align-items: center;">
-                        {% if tracks_info %}
-                        <div class="alert alert-success" role="alert" style="width: 80%; text-align: left;">
-                            <table class="table table-bordered table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Index</th>
-                                        <th>Track Name</th>
-                                        <th>Match</th>
-                                        <th>Artist Name</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for track_info in tracks_info %}
-                                    <tr>
-                                        <td>{{ track_info.index }}</td>
-                                        <td>{{ track_info.track_name }}</td>
-                                        <td>{{ track_info.match }}</td>
-                                        <td>{{ track_info.artist_name }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% else %}
-                        <div class="alert alert-warning" role="alert" style="width: 80%; text-align: center;">
-                            <h1>Aucune information</h1>
-                        </div>
-                        {% endif %}
-                    </div>
+                   
                     
                     
                 

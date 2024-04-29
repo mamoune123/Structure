@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Freelancer - Start Bootstrap Theme</title>
+        <title>Freelancer - Charts Filter</title>
         <!-- Favicon-->
         <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -34,59 +34,79 @@
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/t">Tag</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/l">LOG</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/similaire">similaire</a></li>
-
                     </ul>
                 </div>
             </div>
         </nav>
         <!-- Masthead-->
         <header class="masthead bg-primary text-white text-center">
-            <div class="container d-flex align-items-center flex-column">
-                <!-- Masthead Avatar Image-->
-              
-                    <h1>Recherche d'Album</h1>
-                    <form action="/result" method="GET" class="mt-4">
-                        <div class="form-group">
-                            <label for="artist">Artiste:</label>
-                            <input type="text" id="artist" name="artist" class="form-control" required>
-                        </div>
-                        <div class="form-group mt-2">
-                            <label for="album">Album:</label>
-                            <input type="text" id="album" name="album" class="form-control" required>
-                        </div>
-                        <div class="form-group mt-2">
-                            <input type="submit" value="Rechercher" class="btn btn-light">
-                        </div>
-                    </form>
-                    
-                <!-- Masthead Heading-->
-                <div class="container mt-5" style="display: flex; flex-direction: column; align-items: center;">
-                        <h1>Résultat de la recherche</h1>
-                        {% if message %}
-                        <div class="alert alert-success" role="alert" style="width: 80%; text-align: left;">
-                            
-                            <h3>Nombre d'auditeurs: {{ message.listeners }}</h3>
-                            <h3>Date de sortie:{{ message.release_date }}</h3>
-                            <h3>Nombre de lectures: {{ message.playcount }}</h3>
-                            <div class="tracks">
-                                <h1>tracks</h1>
-                                <ul>
-                                    {% for track in message.tracks %}
-                                        <li>
-                                            <p><strong>Nom de la piste:</strong> {{ track.name }}</p>
-                                            <p><strong>Durée:</strong> {{ track.duration }}</p>
-                                            <p><strong>Artiste:</strong> {{ track.artist }}</p>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-warning" role="alert" style="width: 80%; text-align: center;">
-                                <h1>Aucune information</h1>
-                            </div>
-                                                    {% endif %}
-                        </div>
+
+           <div class="container d-flex flex-column align-items-center flex-md-row px-5 px-md-5 mb-3 justify-content-center text-center">
+                <form action="/charts_filter" method="GET" class="w-100">
+
+                  <div class="form-group">
+                    <label for="option">Option :</label>
+                    <select class="form-control" id="option" name="option" required>
+                      <option value="artist">Artists</option>
+                      <option value="album">Albums</option>
+                      <option value="track">Tracks</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="comparateur">Comparateur :</label>
+                    <select class="form-control" id="comparateur" name="comparateur" required>
+                      <option value="sup">Supérieur à</option>
+                      <option value="inf">Inférieur à</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="ecoutes">Nombre d'écoutes :</label>
+                    <input type="number" class="form-control" id="ecoutes" name="ecoutes" placeholder="Entrez le nombre d'écoutes" min="0" required>
+                  </div>
+                  <button type="submit" class="btn btn-outline-light btn-md mt-3 mb-3 mx-2 mb-sm-2 w-100">Rechercher</button>
+                </form>
+            </div>
+
+            <div class="container mt-5" style="display: flex; flex-direction: column; align-items: center;">
+                {% if error_message %}
+                        <div class="alert alert-danger" role="alert">
+                          {{ error_message }}
+                        </div>                        
+                {% elif filtred_charts %}
+                <div class="alert alert-success" role="alert" style="width: 80%; text-align: left;">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                {% if option=='artist' %}
+                                <th>Artist</th>
+                                {% elif option=='album' %}
+                                <th>Albums</th>
+                                {% elif option=='track' %}
+                                <th>Track</th>
+                                {% endif %}
+                                <th>Listeners</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for filtred_chart in filtred_charts %}
+                            <tr>
+                                <td>{{ filtred_chart['name'] }}</td>
+                                <td>{{ filtred_chart['listeners'] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="alert alert-warning" role="alert" style="width: 80%; text-align: center;">
+                    <h1>Aucune information</h1>
+                </div>
+                {% endif %}
+            </div>
+                
+                
+                    
                 
                 
                 <!-- Icon Divider-->
