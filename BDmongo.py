@@ -182,4 +182,33 @@ def count_consultations():
 
     return artist_occurrences, track_occurrences, tag_occurrences
 
+######## users 
+def check_user_in_db(username):
+    collection = db["GAMMA_users"]
+    username_from_db = collection.find_one({"username": username})
+    return username_from_db
+
+def insert_user_into_db(username, mdp, nom, prenom):
+    collection = db["GAMMA_users"]
+    role = "regular"
+    user_infos = {
+    "username": username,
+    "mdp": mdp,
+    "role": role,
+    "nom": nom,
+    "prenom": prenom
+    }
+    collection.insert_one(user_infos)
+    print("Données des pistes similaires insérées avec succès dans la collection GAMMA_similaire.")
+
+def check_connexion(username, mdp):
+    #il verifie si le mdp parametre est correspand au mdp stocké 
+    user = check_user_in_db(username)
+    if user:
+        # Récupérer le mot de passe stocké dans la base de données
+        mdp_db = user.get("mdp")
+        # Comparer le mot de passe fourni avec celui stocké dans la base de données
+        if mdp == mdp_db:
+            return user  # Le mot de passe correspond
+    return False  # Aucun utilisateur trouvé ou mot de passe incorrect
 

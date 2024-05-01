@@ -34,13 +34,28 @@
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/t">Tag</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/l">LOG</a></li>
                         <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/similaire">similaire</a></li>
-
+                        {% if role == 'regular' %}
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/avis">Avis</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/logout">Déconnexion</a></li>
+                        {% elif role == 'admin' %}
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/suivi">SUIVI</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/logout">Déconnexion</a></li>
+                        
+                        {% else %}
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/login">se connecter</a></li>
+                        <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/signup">inscription</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
         </nav>
         <!-- Masthead-->
         <header class="masthead bg-primary text-white text-center">
+            {%if username_connected%}
+            <h1>
+                Bienvenu : {{   username_connected }}
+            </h1>
+            {%endif%}
             <div class="container d-flex align-items-center flex-column">
                 <!-- Masthead Avatar Image-->
               

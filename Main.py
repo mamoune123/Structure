@@ -3,7 +3,9 @@ import requests
 import plotly.graph_objs as go
 import json
 import matplotlib.pyplot as plt
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, redirect, render_template, request, url_for, session
+from flask_session import Session
+
 from BDmongo import *
 from datetime import datetime
 #API key
@@ -11,6 +13,8 @@ XI_API_KEY = "43fd3e0df818d835e6b144ad21a7765a"
 #Url pour mongo
 
 import requests
+
+
 
 def get_similar_track(api_key, artist, track, page=1, limit=10):
     url = 'http://ws.audioscrobbler.com/2.0/'
@@ -39,12 +43,6 @@ def get_similar_track(api_key, artist, track, page=1, limit=10):
         }
         tracks_info_list.append(track_info)
     return tracks_info_list
-
-
-
-
-
-
 
 
 def get_info_charttags(api_key, chart_type, page=1, limit=10):
@@ -249,15 +247,29 @@ def get_filtred_charts(ecoutes,comparateur, option):
 
 
 
+
+
 app = Flask(__name__, static_folder='templates/', static_url_path='')
 
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
+app.config['SESSION_USE_SIGNER'] = True  # Optionnel : pour signer les cookies de session
+
+Session(app)
+app.secret_key = '_5#y2L"F4Q8z\n\xec]/'
 
 @app.route('/') 
-def home():
-    message = request.args.get('message')  
-    return render_template('Lastfm.html', message=message)
+def index():
+    if 'username' in session:
+        username = session['username']
+        return render_template('index.html', message=username)
 
-@app.route('/l', methods=['GET'])
+    else :
+
+        #message = request.form.get('message')  
+        return render_template('index.html')
+
+@app.route('/l',methods=['POST','GET'])
 def log():
     artist_index, track_index, tag_index = count_consultations()
     print(artist_index)
@@ -275,21 +287,21 @@ def log():
     
     return render_template('log.html',labels1=labels1, labels2=labels2, labels3=labels3, values1=values1, values2=values2, values3=values3)
 
-@app.route('/t')
+@app.route('/t',methods=['POST','GET'])
 def t():
     return render_template('Tag.html')
-@app.route('/a') 
+@app.route('/a', methods=['POST','GET']) 
 def a():
     return render_template('Artiste.html')
 
-@app.route('/c',methods=['GET'])
+@app.route('/c',methods=['POST','GET'])
 def c():
     track_info_list = get_info_chart(XI_API_KEY, 'tracks')
     log_consultation("tracks")   
     tracks_with_index = [(index + 1, track_info) for index, track_info in enumerate(track_info_list)]
     return render_template('chart_tracks.html',tracks_with_index=tracks_with_index)
 
-@app.route('/c2',methods=['GET'])
+@app.route('/c2',methods=['POST','GET'])
 def c2():
     track_info_list = get_info_chartartist(XI_API_KEY, 'artists')
     log_consultation("artists")
@@ -297,7 +309,7 @@ def c2():
     print(count_consultations())
     return render_template('chart_artist.html',tracks_with_index=tracks_with_index)
 
-@app.route('/c3',methods=['GET'])
+@app.route('/c3', methods=['POST','GET'])
 def c3():
     track_info_list = get_info_charttags(XI_API_KEY, 'tags')
     log_consultation("tags")
@@ -305,9 +317,9 @@ def c3():
 
     return render_template('chart_tags.html',tracks_with_index=tracks_with_index)
 
-@app.route('/Artiste', methods=['GET'])
+@app.route('/Artiste', methods=['POST','GET'])
 def Artiste():
-    artist_name = request.args.get('artist') 
+    artist_name = request.get['artist'] 
     info = check_artist_in_db(artist_name)
     if info : 
         print("dans la base")
@@ -319,9 +331,9 @@ def Artiste():
         print("aaaaaaaaaa" ,artist_info)
         return render_template('Artiste.html', artist_info=artist_info)
 
-@app.route('/tag', methods=['GET'])
+@app.route('/tag', methods=['POST','GET'])
 def tag_info():
-    tag = request.args.get('tag')
+    tag = request.get['tag'] 
     info = check_tag_in_db(tag)
     if info: 
         print("dans la base")
@@ -334,21 +346,21 @@ def tag_info():
 
 
 
-@app.route('/result', methods=['GET'])
+@app.route('/result', methods=['POST','GET'])
 def result():
     artist = request.args.get('artist')
     album = request.args.get('album')
     info = check_album_in_db(artist,album)
     if info: 
         print("dans la base")
-        return render_template('Lastfm.html',message=info)
+        return render_template('index.html',message=info)
     else: 
         print("pas dans la base")
         response = get_album_info(XI_API_KEY, artist, album)
         insert_album_info_into_db(response)
-        return render_template('Lastfm.html',message=response)
+        return render_template('index.html',message=response)
 
-@app.route('/similaire',methods=['POST','GET'])
+@app.route('/similaire',methods=['POST'])
 def similaire():
     artist = request.args.get('artist')
     track = request.args.get('track')
@@ -362,15 +374,14 @@ def similaire():
         insert_similaire_info_into_db(response,artist,track)
     return render_template('Similaire.html', tracks_info=response)
 
-@app.route('/charts_filter',methods=['POST','GET'])
+@app.route('/charts_filter',methods=['POST', 'GET'])
 def charts_filter():
-    
     if 'option' in request.args and 'comparateur' in request.args and 'ecoutes' in request.args:
         option = request.args.get('option')
         comparateur = request.args.get('comparateur')
         ecoutes_str = request.args.get('ecoutes')
         ecoutes_int = int(ecoutes_str)
-        filtred_charts = get_filtred_charts(ecoutes_int,comparateur, option)
+        filtred_charts = get_filtred_charts(ecoutes_int, comparateur, option)
         if filtred_charts:
             print("dans la base")
             return render_template('charts_filter.html', filtred_charts=filtred_charts, option=option)
@@ -380,6 +391,55 @@ def charts_filter():
     else :
         return render_template('charts_filter.html')
 
+
+#compte utilisateur inscription 
+@app.route('/signup')
+def signup(): 
+    return render_template('signup.html')
+
+@app.route('/signup_done',methods=['POST'])
+def signup_done():
+    username = request.form.get('username')
+    mdp = request.form.get('mdp')
+    nom = request.form.get('nom')
+    prenom = request.form.get('prenom')
+    existe = check_user_in_db(username)  # Récupérer une seule ligne du résultat
+    if existe == None:
+        insert_user_into_db(username,mdp,nom,prenom)
+        session['username'] = username
+        return render_template('index.html', role='regular', username_connected=username)
+    #envoie vers route /home !! à faire
+    else:
+        # Si un utilisateur est déjà enregistré, rediriger vers la page d'accueil
+        error_message = "cet utilisateur est déjà inscrit!"
+        return render_template('signup.html', error_message=error_message)
+
+@app.route("/logout")
+def logout():
+    session.pop('id_utilisateur', None)
+    return render_template('index.html')    
+        
+@app.route('/login')
+def login(): 
+    return render_template('login.html')
+
+@app.route("/loginDone",methods=['POST'])
+def loginDone():
+    username = request.form['username']
+    password = request.form['password']
+    existe = check_user_in_db(username)  # Récupérer une seule ligne du résultat
+    if existe:  # Si un utilisateur correspondant est trouvé
+        access = check_connexion(username, password)
+        if access :
+            print("acces autorisé :", access)
+            session['id_utilisateur'] = username
+            return render_template('index.html', role=access.get("role"), username_connected=access.get("username"))  
+        else :
+            error_message = "Failed : le mot de passe saisi est incorrect"
+            return render_template('login.html', error_message=error_message)  
+    else:
+        error_message = "Failed : le username saisi n'existe pas"
+        return render_template('login.html', error_message=error_message)  
 
 if __name__ == '__main__':
       app.run(debug=True)

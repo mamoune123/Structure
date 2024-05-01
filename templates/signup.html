@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Freelancer - Start Bootstrap Theme</title>
+        <!-- Favicon-->
+        <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+    </head>
+    <body id="page-top " class="gradient-custom">
+        <!-- Navigation-->
+        <section class="vh-100 ">
+            <div class="container py-5 h-100">
+              <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                  <div class="card bg-dark text-white" style="border-radius: 1rem;">
+                    <div class="card-body p-5 text-center">
+          
+                      <div class="mb-md-5 mt-md-4 pb-5">
+          
+                        <h2 class="fw-bold mb-2 text-uppercase">Login</h2>
+                        <p class="text-white-50 mb-5">Please enter your login and password!</p>
+          
+                        <!-- Affichage du message d'erreur -->
+                        {% if error_message %}
+                        <div class="alert alert-danger" role="alert">
+                          {{ error_message }}
+                        </div>
+                        {% endif %} 
+
+                      <!-- formulaire -->
+<form id="signupForm" action="/signup_done" method="POST" onsubmit="return validateForm()">
+  <!-- Champs communs à tous les rôles -->
+  <div class="form-outline form-white mb-4">
+      <label class="form-label" for="typeEmailX">Username </label>
+      <input type="username" id="typeEmailX" class="form-control form-control-lg" name="username" required/>
+  </div>
+
+  <div class="form-outline form-white mb-4">
+      <label class="form-label" for="typePassword">Mot de passe</label>
+      <input type="password" id="typePassword" class="form-control form-control-lg" name="mdp" required>
+  </div>
+
+  <div class="form-outline form-white mb-4">
+      <label class="form-label" for="typeConfirmPassword">Confirmation du mot de passe</label>
+      <input type="password" id="typeConfirmPassword" class="form-control form-control-lg" name="confirm_password" oninput="checkPasswordMatch()" required>
+      <div id="passwordMismatch" style="color: red; display: none;">Les mots de passe ne correspondent pas.</div>
+  </div>
+
+
+
+      <div class="form-outline form-white mb-4">
+          <label class="form-label" for="nom">Nom</label>
+          <input type="text" id="nom" class="form-control form-control-lg" name="nom" required/>
+      </div>
+
+      <div class="form-outline form-white mb-4">
+          <label class="form-label" for="prenom">Prenom</label>
+          <input type="text" id="prenom" class="form-control form-control-lg" name="prenom" required/>
+      </div>
+
+
+
+  <button class="btn btn-outline-light btn-lg px-5" type="submit">S'inscrire</button>
+</form>
+
+                      
+                      <script>
+                          function checkPasswordMatch() {
+                              var password = document.getElementById("typePassword").value;
+                              var confirmPassword = document.getElementById("typeConfirmPassword").value;
+
+                              if (password != confirmPassword) {
+                                document.getElementById("passwordMismatch").style.display = "block";
+                                return false;
+                              } else {
+                                document.getElementById("passwordMismatch").style.display = "none";
+                                return true;
+                              }
+                            }
+                          function validateForm() {
+
+                              return checkPasswordMatch();
+                          } 
+                      </script>
+                        <div class="d-flex justify-content-center text-center mt-4 pt-1">
+                          <a href="#!" class="text-white"><i class="fab fa-facebook-f fa-lg"></i></a>
+                          <a href="#!" class="text-white"><i class="fab fa-twitter fa-lg mx-4 px-2"></i></a>
+                          <a href="#!" class="text-white"><i class="fab fa-google fa-lg"></i></a>
+                        </div>
+          
+
+          
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    </body>
+</html>
