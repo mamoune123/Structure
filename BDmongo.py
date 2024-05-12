@@ -31,14 +31,16 @@ def insert_artist_info_into_db(artist_info):
     if existing_document:
         print("Le document existe déjà dans la collection GAMMA_artists. Pas besoin d'insérer à nouveau.")
     else:
-        
         collection.insert_one(artist_info)
+        collection.create_index({"name": 1},)
+
         print("Données de l'artiste insérées avec succès dans la collection GAMMA_artists.")
 #####################
 #fonctions pour tag
 def check_tag_in_db(tag_name):
     collection = db["GAMMA_tags"]
     tag_info_from_db = collection.find_one({"name": tag_name})
+
     return tag_info_from_db
 
 def insert_tag_info_into_db(tag_info):
@@ -50,6 +52,8 @@ def insert_tag_info_into_db(tag_info):
         print("Le document existe déjà dans la collection GAMMA_tags. Pas besoin d'insérer à nouveau.")
     else:
         collection.insert_one(tag_info)
+        collection.create_index({"name": 1})
+
         print("Données du tag insérées avec succès dans la collection GAMMA_tags.")
 
 ######################
@@ -62,8 +66,9 @@ def getAll_albums():
 
 def check_album_in_db(artist_name, album_name):
     collection = db["GAMMA_albums"]
-    album_info_from_db = collection.find_one({"artist": artist_name, "album": album_name})
+    album_info_from_db = collection.find_one({"artist": artist_name, "name": album_name})
     return album_info_from_db
+
 
 
 def insert_album_info_into_db(album_info):
@@ -74,6 +79,8 @@ def insert_album_info_into_db(album_info):
         print("Le document existe déjà dans la collection GAMMA_albums. Pas besoin d'insérer à nouveau.")
     else:
         collection.insert_one(album_info)
+        collection.create_index({"name": 1})
+
         print("Données de l'album insérées avec succès dans la collection GAMMA_albums.")
 
 ######################
@@ -82,6 +89,23 @@ def getAll_tracks():
     collection = db["GAMMA_tracks"]
     local_tracks = collection.find()
     return local_tracks
+
+def check_track_in_db(artist_name, track_name):
+    collection = db["GAMMA_tracks"]
+    track_info_from_db = collection.find_one({"artist": artist_name, "track": track_name})
+    return track_info_from_db
+
+def insert_track_info_into_db(track_info):
+    collection = db["GAMMA_tracks"]
+
+    existing_document = collection.find_one({"name": track_info["name"],"artist": track_info["artist"]})
+    if existing_document:
+        print("Le document existe déjà dans la collection GAMMA_tracks. Pas besoin d'insérer à nouveau.")
+    else:
+        collection.insert_one(track_info)
+        collection.create_index({"name": 1})
+
+        print("Données de l'track insérées avec succès dans la collection GAMMA_tracks.")
 
 
 
@@ -108,9 +132,54 @@ def insert_similaire_info_into_db(tracks_info, artist, track):
             "similar_tracks": tracks_info
         }
         collection.insert_one(similar_tracks_document)
+        collection.create_index({"track": 1})
+
         print("Données des pistes similaires insérées avec succès dans la collection GAMMA_similaire.")
 
+######################
+#fonctions pour AVIS 
+def insert_avisTag_into_db(username, note, comment, nameTag):
+    collection = db["GAMMA_avis"]
 
+    existing_document = collection.find_one({"username": username, "tag_name": nameTag})
+    if existing_document:
+        # Le document existe déjà, mettez à jour les valeurs de note et de commentaire
+        new_values = {"$set": {"note": note, "comment": comment}}
+        collection.update_one({"username": username, "tag_name": nameTag}, new_values)
+        print("Le document a été mis à jour avec succès dans la collection GAMMA_avis.")
+    else:
+        # Le document n'existe pas encore, insérez un nouveau document
+        avis_info = {
+            "username": username,
+            "note": note,
+            "comment": comment,
+            "option": "tag",
+            "tag_name": nameTag
+        }
+        collection.insert_one(avis_info)
+        print("Données de l'avis insérées avec succès dans la collection GAMMA_avis.")
+
+def insert_avis_into_db(username,note,comment,option, name, artist):
+    collection = db["GAMMA_avis"]
+
+    existing_document = collection.find_one({"username": username, "option": option,"oeuvrage": name, "artist" : artist})
+    if existing_document:
+        # Le document existe déjà, mettez à jour les valeurs de note et de commentaire
+        new_values = {"$set": {"note": note, "comment": comment}}
+        collection.update_one({"username": username, "option": option,"oeuvrage": name, "artist" : artist}, new_values)
+        print("Le document a été mis à jour avec succès dans la collection GAMMA_avis.")
+    else:
+        avis_info = {
+            "username": username,
+            "note": note,
+            "comment": comment,
+            "option": option,
+            "oeuvrage": name,
+            "artist" : artist
+        }
+        collection.insert_one(avis_info)
+        collection.create_index([("username", 1), ("option", 1), ("oeuvrage", 1), ("artist", 1)], unique=True)
+        print("Données de l'avis insérées avec succès dans la collection GAMMA_avis.")
 
 
 #########################
@@ -199,7 +268,17 @@ def insert_user_into_db(username, mdp, nom, prenom):
     "prenom": prenom
     }
     collection.insert_one(user_infos)
+    collection.create_index({"username": 1}, unique=True)
     print("Données des pistes similaires insérées avec succès dans la collection GAMMA_similaire.")
+
+def get_user_role(username):
+    collection = db["GAMMA_users"]
+    existing_user = collection.find_one({"username": username})
+    if existing_user:
+        return collection.find_one({"username": username}).get("role")
+    else:
+        print("username doesnt existe to check his role")
+
 
 def check_connexion(username, mdp):
     #il verifie si le mdp parametre est correspand au mdp stocké 
@@ -212,3 +291,4 @@ def check_connexion(username, mdp):
             return user  # Le mot de passe correspond
     return False  # Aucun utilisateur trouvé ou mot de passe incorrect
 
+## 
