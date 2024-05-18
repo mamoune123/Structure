@@ -22,13 +22,13 @@
       rel="stylesheet"
       type="text/css"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-
     <link
       href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic"
       rel="stylesheet"
       type="text/css"
     />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="css/styles.css" rel="stylesheet" />
   </head>
@@ -80,135 +80,69 @@
     </nav>
     <!-- Masthead-->
     <body class="masthead bg-primary text-white text-center">
+      <div
+        class="container d-flex flex-column align-items-center flex-md-row px-5 px-md-5 mb-3 justify-content-center text-center"
+      >
+      <a
+      href="/consul1"
+      class="btn btn-outline-light mb-3 mx-2 mb-sm-2 justify-content-center w-100"
+    >
+      Tracks
+    </a>
+    <a href="/consul2" class="btn btn-outline-light mb-3 mx-2 mb-sm-2 w-100">
+      artist
+    </a>
+    <a
+      href="/consul3"
+      class="btn btn-outline-light btn-md mb-3 mx-2 mb-sm-2 w-100"
+    >
+      Tag
+    </a>
+      </div>
       <div class="container d-flex align-items-center flex-column">
         <!-- Masthead Avatar Image-->
-
-        <h1>Recherche d'Artiste</h1>
-        <form action="/Artiste" method="GET" class="mt-4">
-          <div class="form-group">
-            <label for="artist">Artiste:</label>
-            <input
-              type="text"
-              id="artist"
-              name="artist"
-              class="form-control"
-              required
-            />
-          </div>
-          <div class="form-group mt-2">
-            <input type="submit" value="Rechercher" class="btn btn-light" />
-          </div>
-        </form>
         {% if message_requete and role =='admin' %}
         <div class="alert alert-success animate__animated animate__fadeInDown" role="alert" style="width: 80%; text-align: center">
-            <h1>{{message_requete}}</h1>
+          <h1>{{message_requete}}</h1>
         </div>
         {% endif %}
-        <div
-          class="container mt-5"
-          style="display: flex; flex-direction: column; align-items: center"
-        >
-          {% if artist_info %}
-          <div
-            class="alert alert-success"
-            role="alert"
-            style="width: 80%; text-align: left"
-          >
-            <h1>{{ artist_info.name }}</h1>
-            <div class="similar-artists">
-              <h2>Artistes similaires</h2>
-              <ul>
-                {% for similar_artist in artist_info.similar_artists %}
-                <li>
-                  <h3>{{ similar_artist.name }}</h3>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-            <button
-              type="button"
-              class="btn btn-light"
-              data-bs-toggle="modal"
-              data-bs-target="#exampleModal"
-            >
-              Donnez Avis
-            </button>
+        <div class="container mt-5">
+          <h1 class="mb-4 ">Consultations : Artists</h1>
 
-            <!-- Modal adding-->
-            <div
-              class="modal fade"
-              id="exampleModal"
-              tabindex="-1"
-              aria-labelledby="exampleModalLabel"
-              aria-hidden="true"
-            >
-              <div class="modal-dialog">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">
-                      Donnez un avis :
-                    </h5>
-                    <button
-                      type="button"
-                      class="btn-close"
-                      data-bs-dismiss="modal"
-                      aria-label="Close"
-                    ></button>
-                  </div>
-                  <div class="modal-body">
-                    <form id="avisForm" action="/add_langue" method="post">
-                      <div class="form-group">
-                        <label for="note">Note (0 à 5):</label>
-                        <input
-                          type="number"
-                          class="form-control"
-                          id="note"
-                          name="note"
-                          min="0"
-                          max="5"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label for="commentaire">Commentaire:</label>
-                        <textarea
-                          type="text"
-                          class="form-control"
-                          id="commentaire"
-                          name="commentaire"
-                          rows="4"
-                        ></textarea>
-                      </div>
-
-                      <div class="modal-footer">
-                        <button
-                          type="button"
-                          class="btn btn-secondary"
-                          data-bs-dismiss="modal"
-                        >
-                          Fermer
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                          Soumettre
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {% else %}
-            <div
-              class="alert alert-warning"
-              role="alert"
-              style="width: 80%; text-align: center"
-            >
-              <h1>Aucune information</h1>
-            </div>
-            {% endif %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead class="thead-dark">
+                <tr>
+                  <th scope="col">Dernières consultations</th>
+                </tr>
+              </thead>
+              <form id="chartsForm" action="/charts_cible" method="GET">
+                <tbody>
+                  {% for consultation in consultations_artists %}
+                  <tr>
+                    <td class="clickable pe-auto">{{ consultation.date }}</td>
+                    <input class="form-control" name="data_cible" value="{{consultation.date}}" hidden/>
+                    <input class="form-control" name="type_cible" value="artist" hidden/>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </form>
+            </table>
           </div>
         </div>
-
+        
+        <script>
+          // Sélectionnez tous les éléments de classe "clickable"
+          const clickableElements = document.querySelectorAll('.clickable');
+        
+          // Ajoutez un gestionnaire d'événement de clic à chaque élément
+          clickableElements.forEach(function(element) {
+            element.addEventListener('click', function() {
+              // Soumettez le formulaire
+              document.getElementById('chartsForm').submit();
+            });
+          });
+        </script>
         <!-- Icon Divider-->
         <div class="divider-custom divider-light">
           <div class="divider-custom-line"></div>
@@ -221,6 +155,7 @@
         </p>
       </div>
     </body>
+     
     <!-- Bootstrap core JS-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->

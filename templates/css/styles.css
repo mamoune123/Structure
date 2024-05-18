@@ -300,6 +300,10 @@ kbd kbd {
   font-size: 1em;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 figure {
   margin: 0 0 1rem;
 }

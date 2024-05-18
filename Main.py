@@ -5,6 +5,7 @@ import json
 import matplotlib.pyplot as plt
 from flask import Flask, redirect, render_template, request, url_for, session
 from flask_session import Session
+from datetime import datetime
 
 from BDmongo import *
 from datetime import datetime
@@ -354,40 +355,87 @@ def a():
         username = session['username']
     return render_template('Artiste.html', role=get_user_role(username))
 
+#1 : track (top 10 tracks ACTUELLEMENT)
 @app.route('/c',methods=['POST','GET'])
 def c():
     if 'username' in session:
         username = session['username']
-    
+    type_consultation='track'
+    date=datetime.now().strftime("%Y-%m-%d")
     track_info_list = get_info_chart(XI_API_KEY, 'tracks')
-    log_consultation("tracks")   
+    insert_log_consultation(type_consultation,date)   
     tracks_with_index = [(index + 1, track_info) for index, track_info in enumerate(track_info_list)]
+    insert_classement(tracks_with_index,date,type_consultation)
     return render_template('chart_tracks.html', tracks_with_index=tracks_with_index, role=get_user_role(username))
 
+#2 : artist (top 10 artist ACTUELLEMENT)
 @app.route('/c2',methods=['POST','GET'])
 def c2():
     if 'username' in session:
         username = session['username']
-    track_info_list = get_info_chartartist(XI_API_KEY, 'artists')
-    log_consultation("artists")
-    tracks_with_index = [(index + 1, track_info) for index, track_info in enumerate(track_info_list)]
-    print(count_consultations())
-    return render_template('chart_artist.html',tracks_with_index=tracks_with_index, role=get_user_role(username))
+    type_consultation='artist'
+    date=datetime.now().strftime("%Y-%m-%d")
+    artist_info_list = get_info_chartartist(XI_API_KEY, 'artists')
+    insert_log_consultation(type_consultation,date)
+    artists_with_index = [(index + 1, artist_info) for index, artist_info in enumerate(artist_info_list)]
+    print("8888888888888888888888888888888",artists_with_index )
+    insert_classement(artists_with_index,date,type_consultation)
+    return render_template('chart_artist.html',artists_with_index=artists_with_index, role=get_user_role(username))
 
+#3 : tag (top 10 tags ACTUELLEMENT)
 @app.route('/c3', methods=['POST','GET'])
 def c3():
     if 'username' in session:
         username = session['username']
-    track_info_list = get_info_charttags(XI_API_KEY, 'tags')
-    log_consultation("tags")
-    tracks_with_index = [(index + 1, track_info) for index, track_info in enumerate(track_info_list)]
-    return render_template('chart_tags.html',tracks_with_index=tracks_with_index, role=get_user_role(username))
-{
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
-}
+    type_consultation='tag'
+    date=datetime.now().strftime("%Y-%m-%d")
+    tag_info_list = get_info_charttags(XI_API_KEY, 'tags')
+    insert_log_consultation(type_consultation,date)
+    tags_with_index = [(index + 1, tag_info) for index, tag_info in enumerate(tag_info_list)]
+    insert_classement(tags_with_index,date,type_consultation)
+    return render_template('chart_tags.html',tags_with_index=tags_with_index, role=get_user_role(username))
+
+#1 : track (consulatations effectuées au top 10 tracks)
+@app.route('/consul1',methods=['POST','GET'])
+def consul1():
+    if 'username' in session:
+        username = session['username']
+    type_consultation='track'
+    consultations_tracks = get_log_consultation(type_consultation)   
+    return render_template('consul_tracks.html', consultations_tracks=consultations_tracks, role=get_user_role(username))
+
+#2 : artist (consulatations effectuées au top 10 artists)
+@app.route('/consul2',methods=['POST','GET'])
+def consul2():
+    if 'username' in session:
+        username = session['username']
+    type_consultation='artist'
+    consultations_artists = get_log_consultation(type_consultation)
+    return render_template('consul_artist.html',consultations_artists=consultations_artists, role=get_user_role(username))
+
+#3 : tag (consulatations effectuées au top 10 tags)
+@app.route('/consul3', methods=['POST','GET'])
+def consul3():
+    if 'username' in session:
+        username = session['username']
+    type_consultation='tag'
+    consultations_tags = get_log_consultation(type_consultation)
+    return render_template('consul_tags.html',consultations_tags=consultations_tags, role=get_user_role(username))
+
+@app.route('/charts_cible', methods=['POST','GET'])
+def charts_cible():
+    if 'username' in session:
+        username = session['username']
+    type_cible = request.args.get('type_cible')
+    date_cible = request.args.get('data_cible')
+    charts_cible = get_classement(type_cible,date_cible)
+    if type_cible=='track':
+        return render_template('chart_tracks.html',tracks_with_index=charts_cible, date_charts=date_cible, role=get_user_role(username))     
+    elif type_cible=='artist':
+        return render_template('chart_artist.html',artists_with_index=charts_cible, date_charts=date_cible, role=get_user_role(username))
+    elif type_cible=='tag':
+        return render_template('chart_tags.html',tags_with_index=charts_cible, date_charts=date_cible, role=get_user_role(username))
+
 @app.route('/Artiste', methods=['POST','GET'])
 def Artiste():
     if 'username' in session:
@@ -464,7 +512,7 @@ def similaire():
             insert_similaire_info_into_db(response,artist,track)
         return render_template('Similaire.html', tracks_info=response, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
     else :
-        return render_template('tag.html', role=get_user_role(username))
+        return render_template('Similaire.html', role=get_user_role(username))
 
 @app.route('/charts_filter',methods=['POST', 'GET'])
 def charts_filter():

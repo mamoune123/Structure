@@ -23,16 +23,18 @@ def check_artist_in_db(artist):
     return artist_info_from_db
 
 def insert_artist_info_into_db(artist_info):
-
     collection = db["GAMMA_artists"]
-
+    ToIndex = False
     existing_document = collection.find_one({"name": artist_info["name"]})
+    if collection.count_documents({})==0:
+        ToIndex=True
 
     if existing_document:
         print("Le document existe déjà dans la collection GAMMA_artists. Pas besoin d'insérer à nouveau.")
     else:
         collection.insert_one(artist_info)
-        collection.create_index({"name": 1},)
+        if ToIndex:
+            collection.create_index({"name": 1},)
 
         print("Données de l'artiste insérées avec succès dans la collection GAMMA_artists.")
 #####################
@@ -45,14 +47,17 @@ def check_tag_in_db(tag_name):
 
 def insert_tag_info_into_db(tag_info):
     collection = db["GAMMA_tags"]
-
+    ToIndex = False
     existing_document = collection.find_one({"name": tag_info["name"]})
-
+    if collection.count_documents({})==0:
+        ToIndex=True
     if existing_document:
         print("Le document existe déjà dans la collection GAMMA_tags. Pas besoin d'insérer à nouveau.")
     else:
+        
         collection.insert_one(tag_info)
-        collection.create_index({"name": 1})
+        if ToIndex:
+            collection.create_index({"name": 1})
 
         print("Données du tag insérées avec succès dans la collection GAMMA_tags.")
 
@@ -73,13 +78,16 @@ def check_album_in_db(artist_name, album_name):
 
 def insert_album_info_into_db(album_info):
     collection = db["GAMMA_albums"]
-
+    ToIndex = False
+    if collection.count_documents({})==0:
+        ToIndex=True
     existing_document = collection.find_one({"name": album_info["name"],"artist": album_info["artist"]})
     if existing_document:
         print("Le document existe déjà dans la collection GAMMA_albums. Pas besoin d'insérer à nouveau.")
     else:
         collection.insert_one(album_info)
-        collection.create_index({"name": 1})
+        if ToIndex:
+            collection.create_index({"name": 1})
 
         print("Données de l'album insérées avec succès dans la collection GAMMA_albums.")
 
@@ -97,13 +105,16 @@ def check_track_in_db(artist_name, track_name):
 
 def insert_track_info_into_db(track_info):
     collection = db["GAMMA_tracks"]
-
+    ToIndex = False
+    if collection.count_documents({})==0:
+        ToIndex=True
     existing_document = collection.find_one({"name": track_info["name"],"artist": track_info["artist"]})
     if existing_document:
         print("Le document existe déjà dans la collection GAMMA_tracks. Pas besoin d'insérer à nouveau.")
     else:
         collection.insert_one(track_info)
-        collection.create_index({"name": 1})
+        if ToIndex:
+            collection.create_index({"name": 1})
 
         print("Données de l'track insérées avec succès dans la collection GAMMA_tracks.")
 
@@ -113,6 +124,7 @@ def insert_track_info_into_db(track_info):
 #fonction pour les similarité
 def check_similiarite_in_db(artist, track):
     collection = db["GAMMA_similaire"]
+    ToIndex = False
     track_info_from_db = collection.find_one({"artist": artist, "track": track})
     if track_info_from_db:
         return track_info_from_db["similar_tracks"]
@@ -121,7 +133,9 @@ def check_similiarite_in_db(artist, track):
 
 def insert_similaire_info_into_db(tracks_info, artist, track):
     collection = db["GAMMA_similaire"]
-
+    ToIndex = False
+    if collection.count_documents({})==0:
+        ToIndex=True
     existing_document = collection.find_one({"artist": artist, "track": track})
     if existing_document:
         print("Les données des pistes similaires pour cet artiste et ce morceau existent déjà dans la collection GAMMA_similaire. Pas besoin de les insérer à nouveau.")
@@ -132,7 +146,8 @@ def insert_similaire_info_into_db(tracks_info, artist, track):
             "similar_tracks": tracks_info
         }
         collection.insert_one(similar_tracks_document)
-        collection.create_index({"track": 1})
+        if ToIndex:
+            collection.create_index({"track": 1})
 
         print("Données des pistes similaires insérées avec succès dans la collection GAMMA_similaire.")
 
@@ -140,7 +155,9 @@ def insert_similaire_info_into_db(tracks_info, artist, track):
 #fonctions pour AVIS 
 def insert_avisTag_into_db(username, note, comment, nameTag):
     collection = db["GAMMA_avis"]
-
+    ToIndex = False
+    if collection.count_documents({})==0:
+        ToIndex=True
     existing_document = collection.find_one({"username": username, "tag_name": nameTag})
     if existing_document:
         # Le document existe déjà, mettez à jour les valeurs de note et de commentaire
@@ -157,11 +174,16 @@ def insert_avisTag_into_db(username, note, comment, nameTag):
             "tag_name": nameTag
         }
         collection.insert_one(avis_info)
+        if ToIndex:
+            collection.create_index([("username", 1), ("option", 1), ("tag_name", 1)], unique=True)
+
         print("Données de l'avis insérées avec succès dans la collection GAMMA_avis.")
 
 def insert_avis_into_db(username,note,comment,option, name, artist):
     collection = db["GAMMA_avis"]
-
+    ToIndex = False
+    if collection.count_documents({})==0:
+        ToIndex=True
     existing_document = collection.find_one({"username": username, "option": option,"oeuvrage": name, "artist" : artist})
     if existing_document:
         # Le document existe déjà, mettez à jour les valeurs de note et de commentaire
@@ -178,20 +200,61 @@ def insert_avis_into_db(username,note,comment,option, name, artist):
             "artist" : artist
         }
         collection.insert_one(avis_info)
-        collection.create_index([("username", 1), ("option", 1), ("oeuvrage", 1), ("artist", 1)], unique=True)
+        if ToIndex:
+            collection.create_index([("username", 1), ("option", 1), ("oeuvrage", 1), ("artist", 1)], unique=True)
         print("Données de l'avis insérées avec succès dans la collection GAMMA_avis.")
 
 
 #########################
 #fonction LOG
-def log_consultation(type_consultation):
+def insert_log_consultation(type_consultation, date):
     consultation_collection = db["GAMMA_LOG"]
+    existing_document = consultation_collection.find_one({"type": type_consultation, "date":date})
+    ToIndex = False
+    if consultation_collection.count_documents({})==0:
+        ToIndex=True
+
+    if existing_document:
+        print("Le document existe déjà dans la collection GAMMA_LOG. Pas besoin d'insérer à nouveau.")
+    else:
+        consultation_data = {
+            "type": type_consultation,
+            "date": date,
+        }
     
-    consultation_data = {
-        "type": type_consultation,
-        "date": datetime.now()
-    }
-    consultation_collection.insert_one(consultation_data)
+        consultation_collection.insert_one(consultation_data)
+        if ToIndex:
+            consultation_collection.create_index([("date", 1), ("type_consultation", 1)])
+
+def get_log_consultation(type_consult):
+    consultation_collection = db["GAMMA_LOG"]
+    data = consultation_collection.find({"type": type_consult})
+    return data
+
+######### CLASSEMENT INSERTION
+def insert_classement(infos_classement, date,type_chart):
+    classement_collection = db["GAMMA_CHART"]
+    existing_document = classement_collection.find_one({"type_chart": type_chart, "date":date})
+    ToIndex = False
+    if classement_collection.count_documents({})==0:
+        ToIndex=True
+    if existing_document:
+        print("Le document existe déjà dans la collection GAMMA_CHART. Pas besoin d'insérer à nouveau.")
+    else:
+        classement_data = {
+            "classement": infos_classement,
+            "date" : date,
+            "type_chart" : type_chart
+        }
+        classement_collection.insert_one(classement_data)
+        if ToIndex:
+            classement_collection.create_index([("date", 1), ("type_chart", 1)])
+
+def get_classement(type_consult,date_cible):
+    classement_collection = db["GAMMA_CHART"]
+    data = classement_collection.find_one({"date": date_cible, "type_chart":type_consult })
+    print("ssssssssssssaaaaaaassssssssss", data.get('classement'))
+    return data.get("classement")
 
 ########################
 #pour le graphique //calcule des données pour remplire le graphique
@@ -257,8 +320,11 @@ def check_user_in_db(username):
     username_from_db = collection.find_one({"username": username})
     return username_from_db
 
-def insert_user_into_db(username, mdp, nom, prenom):
+def insert_user_into_db(username, mdp, nom, prenom):  
     collection = db["GAMMA_users"]
+    ToIndex = False
+    if collection.count_documents({})==0:
+        ToIndex=True  
     role = "regular"
     user_infos = {
     "username": username,
@@ -268,7 +334,8 @@ def insert_user_into_db(username, mdp, nom, prenom):
     "prenom": prenom
     }
     collection.insert_one(user_infos)
-    collection.create_index({"username": 1}, unique=True)
+    if ToIndex:
+        collection.create_index({"username": 1}, unique=True)
     print("Données des pistes similaires insérées avec succès dans la collection GAMMA_similaire.")
 
 def get_user_role(username):
