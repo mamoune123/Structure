@@ -10895,9 +10895,26 @@ html {
   align-items: center;
 }
 
+.brand {
+  width: 300px; /* Définir la largeur du conteneur */
+  height: 100px; /* Définir la hauteur du conteneur */
+  display: flex; /* Utiliser Flexbox pour centrer l'image */
+  justify-content: center; /* Centrer horizontalement */
+  align-items: center; /* Centrer verticalement */
+  overflow: hidden; /* Couper l'image qui dépasse du conteneur */
+}
+
+.brand img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* Redimensionner l'image pour la contenir dans le div */
+}
+
+
 #mainNav {
   padding-top: 1rem;
   padding-bottom: 1rem;
+  background-color: #fff;
   font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   font-weight: 700;
 }
@@ -10908,7 +10925,7 @@ html {
   margin-top: 1rem;
 }
 #mainNav .navbar-nav li.nav-item a.nav-link {
-  color: #fff;
+  color: var(--bs-secondary);
 }
 #mainNav .navbar-nav li.nav-item a.nav-link:hover {
   color: #1abc9c;

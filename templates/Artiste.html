@@ -10,7 +10,7 @@
     <meta name="author" content="" />
     <title>MUSIC TREND</title>
     <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <link rel="icon" href="./assets/img/portfolio/logo.png" type="image/x-icon">
     <!-- Font Awesome icons (free version)-->
     <script
       src="https://use.fontawesome.com/releases/v6.3.0/js/all.js"
@@ -22,24 +22,27 @@
       rel="stylesheet"
       type="text/css"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-
     <link
       href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic"
       rel="stylesheet"
       type="text/css"
     />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="css/styles.css" rel="stylesheet" />
   </head>
   <body id="page-top">
     <!-- Navigation-->
     <nav
-      class="navbar navbar-expand-lg bg-secondary text-uppercase fixed-top"
-      id="mainNav"
+    class="navbar navbar-expand-lg text-uppercase fixed-top"
+    id="mainNav"
     >
       <div class="container">
-        <a class="navbar-brand" href="#page-top">MusicTrend</a>
+     
+        <div class="brand" id="page-top">
+          <img src="./assets/img/portfolio/logo.png" alt="">
+        </div>
         <button
           class="navbar-toggler text-uppercase font-weight-bold bg-primary text-white rounded"
           type="button"
@@ -53,13 +56,12 @@
           <i class="fas fa-bars"></i>
         </button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
-          <ul class="navbar-nav ms-auto">
+         <ul class="navbar-nav ms-auto">
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/c">Top 10</a></li>
-            <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/charts_filter" >Charts Filter</a></li>
+            <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/charts_filter">Charts Filter</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/a">Artiste</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/album">Album</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/t">Tag</a></li>
-            <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/l">LOG</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/similaire">similaire</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/consul1">Consultations</a></li>
 
@@ -67,9 +69,7 @@
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/avis">Avis</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/logout">Déconnexion</a></li>
             {% elif role == 'admin' %}
-            <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/suivi">SUIVI</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/logout">Déconnexion</a></li>
-
             {% else %}
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/login">se connecter</a></li>
             <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded" href="/signup">inscription</a></li>

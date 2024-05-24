@@ -8,7 +8,21 @@ client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["SD2024_projet"]
 
 
-
+def initialize_admin(username, mdp):
+    collection = db["GAMMA_admins"]
+    admin_existe = collection.find_one({"username": username})
+    if admin_existe == None:
+        ToIndex = False
+        if collection.count_documents({})==0:
+            ToIndex=True  
+        user_infos = {
+        "username": username,
+        "mot_de_passe": mdp
+        }
+        collection.insert_one(user_infos)
+        if ToIndex:
+            collection.create_index({"username": 1}, unique=True)
+        print("Données de l'admin insérées avec succès dans la collection GAMMA_admins.")
 
 ######################
 #fonctions pour artiste
@@ -253,66 +267,7 @@ def insert_classement(infos_classement, date,type_chart):
 def get_classement(type_consult,date_cible):
     classement_collection = db["GAMMA_CHART"]
     data = classement_collection.find_one({"date": date_cible, "type_chart":type_consult })
-    print("ssssssssssssaaaaaaassssssssss", data.get('classement'))
     return data.get("classement")
-
-########################
-#pour le graphique //calcule des données pour remplire le graphique
-def count_consultations():
-    # Connexion à la base de données MongoDB
-    collection = db['GAMMA_LOG']
-
-    # Liste des types de consultation à traiter
-    consultation_types = ["artists", "tracks", "tags"]
-
-    # Dictionnaires pour stocker les résultats pour chaque type de consultation
-    artist_occurrences = []
-    track_occurrences = []
-    tag_occurrences = []
-
-    # Parcours des types de consultation
-    for consultation_type in consultation_types:
-        # Requête pour compter les occurrences de chaque date pour le type actuel
-        pipeline = [
-            {"$match": {"type": consultation_type}},
-            {"$group": {"_id": {"date": {"$dateToString": {"format": "%Y-%m-%d", "date": "$date"}}}, "count": {"$sum": 1}}},
-            {"$sort": {"_id.date": 1}}
-        ]
-
-        # Exécution de la requête
-        results = collection.aggregate(pipeline)
-
-        # Formatage des résultats sous forme de liste de tuples (occurrence, date)
-        occurrences = [(row['count'], row['_id']['date']) for row in results]
-
-        # Stockage des résultats dans le dictionnaire approprié en fonction du type de consultation
-        if consultation_type == "artists":
-            artist_occurrences = occurrences
-        elif consultation_type == "tracks":
-            track_occurrences = occurrences
-        elif consultation_type == "tags":
-            tag_occurrences = occurrences
-        
-        all_dates = set([date for _, date in artist_occurrences] + [date for _, date in track_occurrences] + [date for _, date in tag_occurrences])
-
-        # Vérifier chaque date pour chaque type de consultation et l'ajouter avec occurrence 0 si elle manque
-        for date in all_dates:
-            # Vérification pour artist_occurrences
-            if date not in [d for _, d in artist_occurrences]:
-                artist_occurrences.append((0, date))
-            # Vérification pour track_occurrences
-            if date not in [d for _, d in track_occurrences]:
-                track_occurrences.append((0, date))
-            # Vérification pour tag_occurrences
-            if date not in [d for _, d in tag_occurrences]:
-                tag_occurrences.append((0, date))
-
-        # Trier les occurrences par date
-        artist_occurrences.sort(key=lambda x: x[1])
-        track_occurrences.sort(key=lambda x: x[1])
-        tag_occurrences.sort(key=lambda x: x[1])
-
-    return artist_occurrences, track_occurrences, tag_occurrences
 
 ######## users 
 def check_user_in_db(username):

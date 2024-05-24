@@ -14,8 +14,7 @@ XI_API_KEY = "43fd3e0df818d835e6b144ad21a7765a"
 #Url pour mongo
 
 import requests
-
-
+initialize_admin('admin','admin')
 
 def get_similar_track(api_key, artist, track, page=1, limit=10):
     url = 'http://ws.audioscrobbler.com/2.0/'
@@ -28,24 +27,29 @@ def get_similar_track(api_key, artist, track, page=1, limit=10):
         'page': page,
         'limit': limit
     }
-    response = requests.get(url, params=params)
-    data = response.json()
-    if not data or not data.get('similartracks', {}).get('track', []):
-        return None
-    tracks = data.get('similartracks', {}).get('track', [])
-    tracks_info_list = []
-    for index, track in enumerate(tracks, start=1):
-        name = track.get('name')
-        match = track.get('match')
-        artist_name = track.get('artist', {}).get('name')
-        track_info = {
-            'index': index,
-            'track_name': name.lower(),
-            'match': match,
-            'artist_name': artist_name.lower()
-        }
-        tracks_info_list.append(track_info)
-    return tracks_info_list
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # Raise an HTTPError for bad responses
+        data = response.json()
+        if not data or data == {} or not data.get('similartracks', {}).get('track', []):
+            return None, "No similar tracks found"
+        tracks = data.get('similartracks', {}).get('track', [])
+        tracks_info_list = []
+        for index, track in enumerate(tracks, start=1):
+            name = track.get('name')
+            match = track.get('match')
+            artist_name = track.get('artist', {}).get('name')
+            track_info = {
+                'index': index,
+                'track_name': name.lower(),
+                'match': match,
+                'artist_name': artist_name.lower()
+            }
+            tracks_info_list.append(track_info)
+        return tracks_info_list, None
+    except requests.exceptions.RequestException as e:
+        return None, f"API request failed: {e}"
+
 
 
 def get_info_charttags(api_key, chart_type, page=1, limit=10):
@@ -289,6 +293,85 @@ def get_filtred_charts(ecoutes,comparateur, option):
 
     return filtred_charts
 
+def get_info_chart(api_key, chart_type, page=1, limit=10):
+    url = 'http://ws.audioscrobbler.com/2.0/'
+    params = {
+        'method': f'chart.gettop{chart_type}',
+        'api_key': api_key,
+        'format': 'json',
+        'page': page,
+        'limit': limit
+    }
+    response = requests.get(url, params=params)
+    data = response.json()
+    if not data or not data.get('tracks', {}).get('track', []):
+        return None
+    tracks = data.get('tracks', {}).get('track', [])
+    track_info_list = []
+    for track in tracks:
+        track_info = {
+            'name': track.get('name'),
+            'playcount': track.get('playcount'),
+            'listeners': track.get('listeners'),
+            'artist': track.get('artist', {}).get('name')
+        }
+        track_info_list.append(track_info)
+    return track_info_list
+
+def get_chart_country(api_key, country, page=1, limit=10):
+    url = 'http://ws.audioscrobbler.com/2.0/'
+    params = {
+        'method': 'geo.gettoptracks',
+        'country': country,
+        'api_key': api_key,
+        'format': 'json',
+        'page': page,
+        'limit': limit
+    }
+    
+    response = requests.get(url, params=params)
+    data = response.json()
+    
+    chart_country = []
+    top_tracks = data.get('tracks', {}).get('track', [])
+    
+    for track in top_tracks:
+        track_info = {
+            'name': track.get('name'),
+            'artist': track.get('artist', {}).get('name'),
+            'listeners': int(track.get('listeners'))
+          # Récupère le lien de l'image 'extralarge'
+        }
+        chart_country.append(track_info)
+    
+    return chart_country
+
+def get_chart_country_artist(api_key, country, page=1, limit=10):
+    url = 'http://ws.audioscrobbler.com/2.0/'
+    params = {
+        'method': 'geo.gettopartists',
+        'country': country,
+        'api_key': api_key,
+        'format': 'json',
+        'page': page,
+        'limit': limit
+    }
+    
+    response = requests.get(url, params=params)
+    data = response.json()
+    
+    chart_country = []
+    top_tracks = data.get('topartists', {}).get('artist', [])
+    
+    for track in top_tracks:
+        track_info = {
+            'name': track.get('name'),
+            'listeners': int(track.get('listeners'))
+          # Récupère le lien de l'image 'extralarge'
+        }
+        chart_country.append(track_info)
+    
+    return chart_country
 
 
 
@@ -304,6 +387,8 @@ app.config['SESSION_USE_SIGNER'] = True  # Optionnel : pour signer les cookies d
 
 Session(app)
 app.secret_key = '_5#y2L"F4Q8z\n\xec]/'
+
+
 
 @app.route('/album') 
 def album():
@@ -322,26 +407,9 @@ def avis():
         username = session['username']
         return render_template('avis.html', role=get_user_role(username))
 
-@app.route('/l',methods=['POST','GET'])
-def log():
-    if 'username' in session:
-        username = session['username']
-    
-    artist_index, track_index, tag_index = count_consultations()
-    print(artist_index)
-    print(track_index)
-    print(tag_index)
-    
-    labels1 = [row[1] for row in artist_index]
-    values1 = [row[0] for row in artist_index]
-    labels2 = [row[1] for row in track_index]
-    values2 = [row[0] for row in track_index]
-    labels3 = [row[1] for row in tag_index]
-    values3 = [row[0] for row in tag_index]
-    print(labels1)
-
-    
-    return render_template('log.html',labels1=labels1, labels2=labels2, labels3=labels3, values1=values1, values2=values2, values3=values3, role=get_user_role(username))
+@app.route('/')
+def home():
+    return render_template('login.html')
 
 @app.route('/t',methods=['POST','GET'])
 def t():
@@ -395,6 +463,36 @@ def c3():
     insert_classement(tags_with_index,date,type_consultation)
     return render_template('chart_tags.html',tags_with_index=tags_with_index, role=get_user_role(username))
 
+@app.route('/country_artist',methods=['POST','GET'])
+def country_artist():
+    if 'username' in session:
+        username = session['username']
+    country = request.args.get('country')
+    if country is None:
+        country ="France"
+    type_consultation='artistPays'
+    date=datetime.now().strftime("%Y-%m-%d")
+    insert_log_consultation(type_consultation,date)
+    artist_chart = get_chart_country_artist(XI_API_KEY,country)
+    insert_classement(artist_chart,date,type_consultation)
+    return render_template('chart_country_artist.html',artist_chart = artist_chart, country=country, role=get_user_role(username))
+@app.route('/country_artist',methods=['POST','GET'])
+
+
+@app.route('/country_track',methods=['POST','GET'])
+def country_track():
+    if 'username' in session:
+        username = session['username']
+    country = request.args.get('country')
+    if country is None:
+        country ="France"
+    type_consultation='trackPays'
+    date=datetime.now().strftime("%Y-%m-%d")
+    insert_log_consultation(type_consultation,date)
+    track_chart = get_chart_country(XI_API_KEY,country)
+    insert_classement(track_chart,date,type_consultation)
+    return render_template('chart_country_track.html',track_chart=track_chart , country=country,role = get_user_role(username))
+
 #1 : track (consulatations effectuées au top 10 tracks)
 @app.route('/consul1',methods=['POST','GET'])
 def consul1():
@@ -405,8 +503,8 @@ def consul1():
     return render_template('consul_tracks.html', consultations_tracks=consultations_tracks, role=get_user_role(username))
 
 #2 : artist (consulatations effectuées au top 10 artists)
-@app.route('/consul2',methods=['POST','GET'])
-def consul2():
+@app.route('/consul_artist',methods=['POST','GET'])
+def consul_artist():
     if 'username' in session:
         username = session['username']
     type_consultation='artist'
@@ -414,11 +512,29 @@ def consul2():
     return render_template('consul_artist.html',consultations_artists=consultations_artists, role=get_user_role(username))
 
 #3 : tag (consulatations effectuées au top 10 tags)
-@app.route('/consul3', methods=['POST','GET'])
-def consul3():
+@app.route('/consul_tag', methods=['POST','GET'])
+def consul_tag():
     if 'username' in session:
         username = session['username']
     type_consultation='tag'
+    consultations_tags = get_log_consultation(type_consultation)
+    return render_template('consul_tags.html',consultations_tags=consultations_tags, role=get_user_role(username))
+
+#4 : tag (consulatations effectuées au top 10 tracks par pays)
+@app.route('/consul_trackPays', methods=['POST','GET'])
+def consul_trackPays():
+    if 'username' in session:
+        username = session['username']
+    type_consultation='trackPays'
+    consultations_tags = get_log_consultation(type_consultation)
+    return render_template('consul_tags.html',consultations_tags=consultations_tags, role=get_user_role(username))
+
+#5 : tag (consulatations effectuées au top 10 artists par pays)
+@app.route('/consul_artistPays', methods=['POST','GET'])
+def consul3():
+    if 'username' in session:
+        username = session['username']
+    type_consultation='artistPays'
     consultations_tags = get_log_consultation(type_consultation)
     return render_template('consul_tags.html',consultations_tags=consultations_tags, role=get_user_role(username))
 
@@ -449,31 +565,39 @@ def Artiste():
             return render_template('Artiste.html', artist_info=info, role=get_user_role(username), message_requete='REQUÊTE LOCAL')
         else:
             artist_info = get_artist_info(XI_API_KEY, artist_name)
-            insert_artist_info_into_db(artist_info)
-            print("pas dans la base")
-            return render_template('Artiste.html', artist_info=artist_info, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
+            if artist_info is None : 
+                return render_template('Artiste.html', role=get_user_role(username))
+            else :
+                insert_artist_info_into_db(artist_info)
+                print("pas dans la base")
+                return render_template('Artiste.html', artist_info=artist_info, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
     else:
         return render_template('Artiste.html', role=get_user_role(username))
 
-@app.route('/tag', methods=['POST','GET'])
+@app.route('/tag', methods=['POST', 'GET'])
 def tag_info():
     if 'username' in session:
         username = session['username']
-    
-    if 'tag' in request.args :
+    else:
+        return redirect(url_for('login'))  # Redirect to login if not logged in
+
+    if 'tag' in request.args:
         tag = request.args.get('tag').lower()
         info = check_tag_in_db(tag)
-        if info: 
+        if info:
             print("dans la base")
             return render_template('Tag.html', tag_info=info, role=get_user_role(username), message_requete='REQUÊTE LOCAL')
         else:
             print("pas dans la base")
             tag_info = get_tag_info(XI_API_KEY, tag)
-            insert_tag_info_into_db(tag_info)
-            return render_template('Tag.html', tag_info=tag_info, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
-    else :
-        return render_template('tag.html', role=get_user_role(username))
-
+            if tag_info is None:
+                return render_template('Tag.html',role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
+            else:
+                insert_tag_info_into_db(tag_info)
+                return render_template('Tag.html', tag_info=tag_info, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
+    else:
+        return render_template('Tag.html', role=get_user_role(username))
+    
 @app.route('/result', methods=['POST','GET'])
 def result():
     if 'username' in session:
@@ -483,36 +607,46 @@ def result():
         artist = request.args.get('artist').lower()
         album = request.args.get('album').lower()
         info = check_album_in_db(artist,album)
-        print("aaaaaaaaaaaaaaaaa",info)
         if info: 
             print("dans la base")
             return render_template('index.html',message=info, role=get_user_role(username), message_requete='REQUÊTE LOCAL')
         else: 
             print("pas dans la base")
             response = get_album_info(XI_API_KEY, artist, album)
-            insert_album_info_into_db(response)
-            return render_template('index.html',message=response, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
+            if response is None :
+                return render_template('index.html', role=get_user_role(username))
+            else : 
+                insert_album_info_into_db(response)
+                return render_template('index.html',message=response, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
     else :
         return render_template('index.html', role=get_user_role(username))
 
-@app.route('/similaire',methods=['GET'])
+@app.route('/similaire', methods=['GET'])
 def similaire():
     if 'username' in session:
         username = session['username']
+    else:
+        return redirect(url_for('login'))  # Redirect to login if not logged in
+
     if 'artist' in request.args and 'track' in request.args:
         artist = request.args.get('artist').lower()
         track = request.args.get('track').lower()
-        info = check_similiarite_in_db(artist,track)
+        info = check_similiarite_in_db(artist, track)
+        
         if info:
             print("dans la base")
-            return render_template('Similaire.html', tracks_info=info, role=get_user_role(username), message_requete='REQUÊTE LOCAL')
-        else: 
+            return render_template('Similaire.html', tracks_info=info, role=get_user_role(username), message_requete='REQUÊTE LOCAL', artist_name=artist, track_name=track)
+        else:
             print("pas dans la base")
-            response = get_similar_track(XI_API_KEY,artist,track)
-            insert_similaire_info_into_db(response,artist,track)
-        return render_template('Similaire.html', tracks_info=response, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE')
-    else :
-        return render_template('Similaire.html', role=get_user_role(username))
+            response, error_message = get_similar_track(XI_API_KEY, artist, track)
+            
+            if response is None:
+                return render_template('Similaire.html', error_message=error_message, role=get_user_role(username))
+            else:
+                insert_similaire_info_into_db(response, artist, track)
+                return render_template('Similaire.html', tracks_info=response, role=get_user_role(username), message_requete='REQUÊTE À DISTANCE',artist_name=artist, track_name=track)
+    else:
+        return render_template('Similaire.html', role=get_user_role(username), error_message="Please provide both artist and track.")
 
 @app.route('/charts_filter',methods=['POST', 'GET'])
 def charts_filter():
